@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>GIF-tastic</title>
+	<!-- VIEWPORT TO ALLOW @MEDIA ON CSS FOR MOBILE -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<!-- BOOTSTRAP-->
+	<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/united/bootstrap.min.css" rel="stylesheet" integrity="sha384-pVJelSCJ58Og1XDc2E95RVYHZDPb9AVyXsI8NoVpB2xmtxoZKJePbMfE4mlXw7BJ" crossorigin="anonymous">
+	
+	<!-- AJAX -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+	<!-- CSS -->
+	<link rel="stylesheet" type="text/css" href="assets/css/reset.css">
+	<link rel="stylesheet" type="text/css" href="assets/css/style.css">
+
+
+	<!-- JQUERY -->
+  	<script src="https://code.jquery.com/jquery-2.2.3.js" integrity="sha256-laXWtGydpwqJ8JA+X9x2miwmaiKhn8tVmOVEigRNtP4=" crossorigin="anonymous"></script>
+	<style type="text/css">
+		button, div, form, input {
+			margin: 10px;
+		}
+		#gifsView {
+			display: -webkit-flex;
+			display: flex;
+			-webkit-align-items: center;
+			justify-content: center;
+			-webkit-flex-direction: row;
+			flex-direction: row;
+			-webkit-flex-wrap: wrap;
+			flex-wrap: wrap;
+			-webkit-flex-flow: row wrap;
+			flex-flow: row wrap;
+			-webkit-align-content: flex-end;
+			align-content: flex-end;
+		}
+	</style>
+</head>
+<body>
+
+<div class="container">
+	<br>
+	<div class="jumbotron">
+	<h1>My GIPHY Search Engine</h1>
+	<br>
+		<div class="row">
+			<div class="col-lg-2"></div>
+			<div class="col-lg-8">
+			<div class="input-group">
+				<input type="text" id="search-input" class="form-control" placeholder="search for any GIF">
+      						<span class="input-group-btn">
+        						<button id="addSearch" class="btn btn-default" type="button">submit</button>
+      						</span>
+    				</div><!-- /input-group -->
+  				</div><!-- /.col-lg-8 -->
+				<div class="col-lg-2"></div>
+			</div><!-- /.row -->
+
+	<div id="buttonsView"></div>
+
+
+
+	<div id="gifsView"></div>
+
+<script src='http://code.jquery.com/jquery-2.1.3.min.js'></script>
+<script type="text/javascript">
+	
+	// My Global GIPHY Variables
+
+	var host = 'http://api.giphy.com/v1/gifs/search?q=';
+	var apiKey = '&api+key=dc6zaTOxFJmzC';
+	var rating = '&rating=pg-13';
+	var limit = '&limit=10';
+	var keyword = '';
+	
+	var keywords = ['Miles Davis', 'San Francisco', 'Star Wars', 'Radiohead', 'Dogs', 'Obama', '30 Rock'];
+
+	renderButtons();
+
+	function displayGIFS(){
+		$('#gifsView').empty();
+		var keyword = $(this).attr('data-name');
+		var queryURL = encodeURI(host + keyword + apiKey + limit + rating);
+
+		$.ajax({url: queryURL, method: 'GET'}).done(function(response) {
+			var results = response.data;
+			console.log(queryURL);
+			console.log(response);
+			console.log(results);
+			for (var i = 0; i < results.length; i++) {
+				var gifDiv = $('<div class="gif">');
+				var gifRating = results[i].rating;
+				var p = $('<p>').text("Rating: " + gifRating);
+				var image = $('<img>');
+				image.attr('id', 'anyImage');
+				image.attr('data-still', results[i].images.downsize_still.url);
+				image.attr('data-animate', results[i].images.downsized.url);
+				image.attr('data-state', 'animate');
+				image.attr('src', results[i].images.downsized.url);
+				image.on('click', onClick);
+				gifDiv.append(p);
+				gifDiv.append(image);
+				$('#gifsView').prepend(gifDiv);
+			};
+		});
+		return false;
+	}
+	// ========================================================
+	// Function for adding keyword buttons 
+	function renderButtons(){ 
+		$('#buttonsView').empty();
+		for (var i = 0; i < keywords.length; i++){
+		    var a = $('<button>'); 
+		    a.addClass('gif' + i);
+		    a.attr('data-name', keywords[i]);
+		    a.text(keywords[i]);
+		    $('#buttonsView').append(a);
+		};
+	};
+	// ========================================================
+	// Click event to capture new keyword and add new button
+	$('#addKeyword').on('click', function(){
+		keyword = $("#keyword-input").val().trim();
+		console.log(keyword);
+		keywords.push(keyword);
+		renderButtons();
+		$("#keyword-input").val('');
+		
+		return false;
+	});
+	// ========================================================
+	// Function for changing the GIF state
+	function onClick(){
+    	state = $(this).attr('data-state');
+        console.log(state);
+        if (state === 'still') {
+            var animateUrl = $(this).attr('data-animate');
+            console.log(animateUrl);
+            $(this).attr('src', animateUrl);
+            $(this).attr('data-state', 'animate');
+        } else {
+            var stillUrl = $(this).attr('data-still');
+            console.log(stillUrl);
+            $(this).attr('src', stillUrl);
+            $(this).attr('data-state', 'still');
+        };
+    };
+	// Loads pre-set keyword buttons in the array
+	renderButtons();
+	// ========================================================
+	//click event listener for animated gifs
+$(document.body).on("click", ".gifs", function(){
+	var state = $(this).attr("data-state");
+	if (state=="still") { //animates gif
+		$(this).attr("src", $(this).attr("data-animate"));
+		$(this).attr("data-state", "animate");
+	} else { //makes still picture
+		$(this).attr("src", $(this).attr("data-still"));
+		$(this).attr("data-state", "still");
+	};
+});
+
+</script>
+
+
+</body>
+</html>
